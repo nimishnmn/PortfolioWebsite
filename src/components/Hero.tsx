@@ -1,13 +1,12 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import InfiniteStroke from './InfiniteStroke';
 
 export default function Hero() {
   return (
     <section style={styles.heroSection}>
-      {/* Aurora Polar Gradient on the left */}
-      <div className="aurora-left-container">
-        <div className="aurora-glow"></div>
-      </div>
+      {/* 3D Infinite Perspective Chromatographic Stroke Background */}
+      <InfiniteStroke />
 
       <div className="container" style={styles.container}>
         <span className="eyebrow" style={styles.eyebrow}>
