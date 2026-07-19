@@ -30,26 +30,28 @@ export default function InfiniteStroke() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // Drawing loop
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Helper function to draw the road with specific width and blur filters
+    const drawRoad = (
+      width: number,
+      height: number,
+      filter: string,
+      widthMultiplier: number,
+      globalAlpha: number
+    ) => {
+      ctx.save();
+      ctx.filter = filter;
+      ctx.globalAlpha = globalAlpha;
 
-      const width = canvas.width / window.devicePixelRatio;
-      const height = canvas.height / window.devicePixelRatio;
-
-      // Base coordinates for 3D perspective stroke
       const startX = width * 0.05;
-      const startY = height * 1.1; // Out of bottom screen
+      const startY = height * 1.1; 
       const horizonX = width * 0.75;
-      const horizonY = height * 0.28; // Infinite end point
+      const horizonY = height * 0.28;
 
-      // Scroll changes the curvature (giving 3D camera pan effect)
       const scrollFactor = scrollY * 0.12;
       const controlX = width * 0.25 + scrollFactor;
       const controlY = height * 0.8 - scrollFactor * 0.2;
 
-      // Draw the 3D stroke by drawing horizontal slices
-      const slices = 120;
+      const slices = 160; // Increased slices for smoother curve resolution
       let prevL: { x: number; y: number } | null = null;
       let prevR: { x: number; y: number } | null = null;
 
@@ -66,11 +68,10 @@ export default function InfiniteStroke() {
         const y = cy1 + t * (cy2 - cy1);
 
         // Winding S-curve wave displacement (like a river)
-        // Dampened as it goes to horizon (1 - t)
         const waveX = Math.sin(t * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - t, 1.3);
         const x = bx + waveX;
 
-        // Path tangent vector (numerical approximation)
+        // Path tangent vector
         let tx = 0;
         let ty = 0;
         if (i < slices) {
@@ -88,7 +89,6 @@ export default function InfiniteStroke() {
           tx = nextX - x;
           ty = nextY - y;
         } else {
-          // Last point fallback
           tx = horizonX - x;
           ty = horizonY - y;
         }
@@ -97,11 +97,10 @@ export default function InfiniteStroke() {
         const nx = len > 0 ? -ty / len : -1;
         const ny = len > 0 ? tx / len : 0;
 
-        // Perspective width scaling (parabolic curve for realistic depth)
-        // Set slightly wider for the edge-fade glow effect
-        const strokeWidth = 190 * Math.pow(1 - t, 2.5);
+        // Width logic (narrower at the horizon)
+        const strokeWidth = 120 * Math.pow(1 - t, 2.5) * widthMultiplier;
 
-        // Compute left and right edge points
+        // Compute edge points
         const lx = x + nx * (strokeWidth / 2);
         const ly = y + ny * (strokeWidth / 2);
         const rx = x - nx * (strokeWidth / 2);
@@ -115,20 +114,15 @@ export default function InfiniteStroke() {
           ctx.lineTo(prevR.x, prevR.y);
           ctx.closePath();
 
-          // Create chromatic dispersion gradient (thermal look: pink -> orange -> blue -> orange -> pink)
+          // Create chromatic dispersion gradient (NO GREEN)
           const grad = ctx.createLinearGradient(lx, ly, rx, ry);
-          // Aurora/Thermal colors with transparent edges for soft, high-fidelity glow
-          grad.addColorStop(0, 'rgba(255, 0, 128, 0)');        // Transparent edge
-          grad.addColorStop(0.14, 'rgba(255, 0, 128, 0.95)');  // Glowing pink
-          grad.addColorStop(0.32, 'rgba(255, 90, 31, 0.98)');   // Glowing orange
-          grad.addColorStop(0.5, 'rgba(0, 140, 255, 1)');      // Neon blue core
-          grad.addColorStop(0.68, 'rgba(255, 90, 31, 0.98)');
-          grad.addColorStop(0.86, 'rgba(255, 0, 128, 0.95)');
-          grad.addColorStop(1, 'rgba(255, 0, 128, 0)');
-
-          // Tiny shadow blur for extra glow bloom
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = 'rgba(0, 112, 243, 0.35)';
+          grad.addColorStop(0, 'rgba(255, 0, 100, 0)');        // Fade out red-pink
+          grad.addColorStop(0.12, 'rgba(255, 0, 80, 0.9)');    // Glowing red-pink
+          grad.addColorStop(0.3, 'rgba(255, 90, 31, 0.95)');   // Glowing orange
+          grad.addColorStop(0.5, 'rgba(0, 112, 243, 1)');      // Neon blue core
+          grad.addColorStop(0.7, 'rgba(255, 90, 31, 0.95)');
+          grad.addColorStop(0.88, 'rgba(255, 0, 80, 0.9)');
+          grad.addColorStop(1, 'rgba(255, 0, 100, 0)');
 
           ctx.fillStyle = grad;
           ctx.fill();
@@ -137,29 +131,54 @@ export default function InfiniteStroke() {
         prevL = { x: lx, y: ly };
         prevR = { x: rx, y: ry };
       }
+      ctx.restore();
+    };
+
+    // Drawing loop
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const width = canvas.width / window.devicePixelRatio;
+      const height = canvas.height / window.devicePixelRatio;
+
+      // Pass 1: Wide, soft glow (Large blur)
+      drawRoad(width, height, 'blur(28px)', 1.5, 0.45);
+
+      // Pass 2: Medium glow (Mid blur)
+      drawRoad(width, height, 'blur(10px)', 1.2, 0.65);
+
+      // Pass 3: Sharp core path (No blur - zero jaggedness!)
+      drawRoad(width, height, 'none', 0.95, 1.0);
 
       // Draw the glowing Concorde plane silhouette
-      // Place it at t = 0.75 (flying along the upper half of the stroke)
+      const startX = width * 0.05;
+      const startY = height * 1.1;
+      const horizonX = width * 0.75;
+      const horizonY = height * 0.28;
+      const scrollFactor = scrollY * 0.12;
+      const controlX = width * 0.25 + scrollFactor;
+      const controlY = height * 0.8 - scrollFactor * 0.2;
+
       const planeT = 0.75;
       const pcx1 = startX + planeT * (controlX - startX);
       const pcy1 = startY + planeT * (controlY - startY);
       const pcx2 = controlX + planeT * (horizonX - controlX);
       const pcy2 = controlY + planeT * (horizonY - controlY);
       
-      // Floating/hover effect based on timestamp
       const floatOffset = Math.sin(Date.now() / 240) * 4;
       const basePlaneX = pcx1 + planeT * (pcx2 - pcx1);
       const basePlaneY = pcy1 + planeT * (pcy2 - pcy1);
       
       const planeWaveX = Math.sin(planeT * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - planeT, 1.3);
-      const planeX = basePlaneX + planeWaveX + 15; // Offset to fly slightly right of center
+      const planeX = basePlaneX + planeWaveX + 15;
       const planeY = basePlaneY - 32 + floatOffset + (scrollY * 0.05);
 
       // Draw glowing background for the plane
+      ctx.save();
       const planeGlow = ctx.createRadialGradient(planeX, planeY, 1, planeX, planeY, 28);
       planeGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      planeGlow.addColorStop(0.2, 'rgba(255, 90, 31, 0.6)');
-      planeGlow.addColorStop(0.6, 'rgba(255, 0, 128, 0.2)');
+      planeGlow.addColorStop(0.25, 'rgba(255, 90, 31, 0.6)');
+      planeGlow.addColorStop(0.65, 'rgba(255, 0, 100, 0.2)');
       planeGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = planeGlow;
       ctx.beginPath();
@@ -167,17 +186,16 @@ export default function InfiniteStroke() {
       ctx.fill();
 
       // Draw Concorde delta-wing silhouette
-      ctx.save();
       ctx.translate(planeX, planeY);
-      ctx.rotate(-0.16 + (scrollY * 0.0002)); // Tilt of the flight path
+      ctx.rotate(-0.16 + (scrollY * 0.0002));
 
       ctx.beginPath();
-      ctx.moveTo(-16, 0); // Tail
-      ctx.lineTo(16, -2); // Long nose cone
-      ctx.lineTo(-4, 6);  // Right wing tip
+      ctx.moveTo(-16, 0); 
+      ctx.lineTo(16, -2); 
+      ctx.lineTo(-4, 6);  
       ctx.lineTo(-12, 1);
       ctx.lineTo(-12, -1);
-      ctx.lineTo(-4, -6); // Left wing tip
+      ctx.lineTo(-4, -6); 
       ctx.closePath();
       
       ctx.fillStyle = '#ffffff';
@@ -187,6 +205,7 @@ export default function InfiniteStroke() {
       ctx.restore();
 
       // Infinite End point glow
+      ctx.save();
       const horizonGlow = ctx.createRadialGradient(horizonX, horizonY, 0, horizonX, horizonY, 40);
       horizonGlow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
       horizonGlow.addColorStop(0.5, 'rgba(121, 40, 202, 0.1)');
@@ -195,6 +214,7 @@ export default function InfiniteStroke() {
       ctx.beginPath();
       ctx.arc(horizonX, horizonY, 40, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
 
       animationFrameId = requestAnimationFrame(render);
     };

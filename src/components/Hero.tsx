@@ -68,7 +68,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '32px',
   },
   gradientText: {
-    background: 'linear-gradient(135deg, #50e3c2 0%, var(--color-brand-orange) 50%, #7928ca 100%)',
+    background: 'linear-gradient(135deg, #ff0080 0%, var(--color-brand-orange) 50%, #7928ca 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   },
@@ -116,9 +116,8 @@ if (typeof document !== 'undefined') {
       height: 80%;
       background: linear-gradient(
         180deg,
-        #50e3c2 0%,    /* Aurora Green */
-        #0070f3 40%,   /* Aurora Blue */
-        #ff0080 70%,   /* Aurora Pink */
+        #0070f3 0%,   /* Aurora Blue */
+        #ff0080 50%,   /* Aurora Pink */
         #7928ca 100%   /* Aurora Purple */
       );
       border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
