@@ -28,18 +28,11 @@ export default function Showcase() {
   return (
     <section id="work" style={styles.section}>
       <div className="container">
-        <span className="eyebrow">PORTFOLIO</span>
         
         <div style={styles.headerRow}>
           <div>
-            <h2 style={styles.sectionTitle}>Motion Design Showcase</h2>
-            <p style={styles.subText}>
-              Playing {displayVideos.length} custom video(s) in parallel loop.
-            </p>
+            <h2 style={styles.sectionTitle}>Showcase</h2>
           </div>
-          <span style={styles.countBadge}>
-            {displayVideos.length} REELS LOADED
-          </span>
         </div>
 
         {/* 2-Column Grid */}
