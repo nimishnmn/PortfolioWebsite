@@ -56,14 +56,19 @@ export default function InfiniteStroke() {
       for (let i = 0; i <= slices; i++) {
         const t = i / slices;
 
-        // Quadratic Bezier interpolation for centerline
+        // Quadratic Bezier base coordinates
         const cx1 = startX + t * (controlX - startX);
         const cy1 = startY + t * (controlY - startY);
         const cx2 = controlX + t * (horizonX - controlX);
         const cy2 = controlY + t * (horizonY - controlY);
 
-        const x = cx1 + t * (cx2 - cx1);
+        const bx = cx1 + t * (cx2 - cx1);
         const y = cy1 + t * (cy2 - cy1);
+
+        // Winding S-curve wave displacement (like a river)
+        // Dampened as it goes to horizon (1 - t)
+        const waveX = Math.sin(t * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - t, 1.3);
+        const x = bx + waveX;
 
         // Path tangent vector (numerical approximation)
         let tx = 0;
@@ -74,8 +79,12 @@ export default function InfiniteStroke() {
           const ncy1 = startY + nextT * (controlY - startY);
           const ncx2 = controlX + nextT * (horizonX - controlX);
           const ncy2 = controlY + nextT * (horizonY - controlY);
-          const nextX = ncx1 + nextT * (ncx2 - ncx1);
+          const baseNextX = ncx1 + nextT * (ncx2 - ncx1);
           const nextY = ncy1 + nextT * (ncy2 - ncy1);
+          
+          const nextWaveX = Math.sin(nextT * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - nextT, 1.3);
+          const nextX = baseNextX + nextWaveX;
+          
           tx = nextX - x;
           ty = nextY - y;
         } else {
@@ -89,8 +98,8 @@ export default function InfiniteStroke() {
         const ny = len > 0 ? tx / len : 0;
 
         // Perspective width scaling (parabolic curve for realistic depth)
-        // Foreground is wide (150px), horizon converges to 0px
-        const strokeWidth = 140 * Math.pow(1 - t, 2.5);
+        // Set slightly wider for the edge-fade glow effect
+        const strokeWidth = 190 * Math.pow(1 - t, 2.5);
 
         // Compute left and right edge points
         const lx = x + nx * (strokeWidth / 2);
@@ -108,12 +117,18 @@ export default function InfiniteStroke() {
 
           // Create chromatic dispersion gradient (thermal look: pink -> orange -> blue -> orange -> pink)
           const grad = ctx.createLinearGradient(lx, ly, rx, ry);
-          // Aurora/Thermal colors matching Concorde image
-          grad.addColorStop(0, 'rgba(255, 0, 128, 0.9)');    // Pink border
-          grad.addColorStop(0.18, 'rgba(255, 90, 31, 0.95)'); // Orange boundary
-          grad.addColorStop(0.48, 'rgba(0, 112, 243, 0.98)'); // Electric Blue center
-          grad.addColorStop(0.82, 'rgba(255, 90, 31, 0.95)');
-          grad.addColorStop(1, 'rgba(255, 0, 128, 0.9)');
+          // Aurora/Thermal colors with transparent edges for soft, high-fidelity glow
+          grad.addColorStop(0, 'rgba(255, 0, 128, 0)');        // Transparent edge
+          grad.addColorStop(0.14, 'rgba(255, 0, 128, 0.95)');  // Glowing pink
+          grad.addColorStop(0.32, 'rgba(255, 90, 31, 0.98)');   // Glowing orange
+          grad.addColorStop(0.5, 'rgba(0, 140, 255, 1)');      // Neon blue core
+          grad.addColorStop(0.68, 'rgba(255, 90, 31, 0.98)');
+          grad.addColorStop(0.86, 'rgba(255, 0, 128, 0.95)');
+          grad.addColorStop(1, 'rgba(255, 0, 128, 0)');
+
+          // Tiny shadow blur for extra glow bloom
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'rgba(0, 112, 243, 0.35)';
 
           ctx.fillStyle = grad;
           ctx.fill();
@@ -124,7 +139,7 @@ export default function InfiniteStroke() {
       }
 
       // Draw the glowing Concorde plane silhouette
-      // Place it at t = 0.72 (flying along the upper half of the stroke)
+      // Place it at t = 0.75 (flying along the upper half of the stroke)
       const planeT = 0.75;
       const pcx1 = startX + planeT * (controlX - startX);
       const pcy1 = startY + planeT * (controlY - startY);
@@ -133,8 +148,12 @@ export default function InfiniteStroke() {
       
       // Floating/hover effect based on timestamp
       const floatOffset = Math.sin(Date.now() / 240) * 4;
-      const planeX = (pcx1 + planeT * (pcx2 - pcx1)) + 15;
-      const planeY = (pcy1 + planeT * (pcy2 - pcy1)) - 32 + floatOffset + (scrollY * 0.05);
+      const basePlaneX = pcx1 + planeT * (pcx2 - pcx1);
+      const basePlaneY = pcy1 + planeT * (pcy2 - pcy1);
+      
+      const planeWaveX = Math.sin(planeT * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - planeT, 1.3);
+      const planeX = basePlaneX + planeWaveX + 15; // Offset to fly slightly right of center
+      const planeY = basePlaneY - 32 + floatOffset + (scrollY * 0.05);
 
       // Draw glowing background for the plane
       const planeGlow = ctx.createRadialGradient(planeX, planeY, 1, planeX, planeY, 28);
