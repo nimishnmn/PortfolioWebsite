@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Film, ExternalLink } from 'lucide-react';
+import { Film } from 'lucide-react';
 import localVideosData from '../assets/videos.json';
 
 interface VideoItem {
@@ -14,45 +14,12 @@ interface VideoItem {
 export default function Showcase() {
   const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
 
-  // Premium stock loop video fallbacks for demonstration when public/videos is empty
-  const defaultVideos: VideoItem[] = [
-    {
-      id: 'default-1',
-      title: 'Cosmic Starfield Loop',
-      url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-background-1611-large.mp4',
-      category: 'Space Motion',
-      description: 'Abstract particle space simulation exploring granular noise textures and depth of field.'
-    },
-    {
-      id: 'default-2',
-      title: 'Neon Motion Laser Loop',
-      url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-31908-large.mp4',
-      category: 'Motion Design',
-      description: 'Chroma wave light streaks animated to simulate neon speedways and kinetic flows.'
-    },
-    {
-      id: 'default-3',
-      title: 'Cyber Netlines Loop',
-      url: 'https://assets.mixkit.co/videos/preview/mixkit-neon-light-stripes-background-31920-large.mp4',
-      category: 'Visual Effects',
-      description: 'Vector paths shifting coordinates in 3D space with high-speed rendering glows.'
-    },
-    {
-      id: 'default-4',
-      title: 'Chromatic Grid Loop',
-      url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-lines-loop-32986-large.mp4',
-      category: 'Typography/UI',
-      description: 'A 2.5D geometric projection exploring UI layout grid lines and kinetic triggers.'
-    }
-  ];
 
-  const displayVideos: VideoItem[] = localVideosData.length > 0 
-    ? (localVideosData as VideoItem[]).map((v) => ({
-        ...v,
-        category: 'Local Work',
-        description: `Imported portfolio video file: ${v.fileName || 'Reel'}`
-      }))
-    : defaultVideos;
+  const displayVideos: VideoItem[] = localVideosData as VideoItem[];
+
+  if (displayVideos.length === 0) {
+    return null;
+  }
 
   const handleVideoError = (id: string) => {
     setVideoErrors((prev: Record<string, boolean>) => ({ ...prev, [id]: true }));
@@ -67,23 +34,19 @@ export default function Showcase() {
           <div>
             <h2 style={styles.sectionTitle}>Motion Design Showcase</h2>
             <p style={styles.subText}>
-              {localVideosData.length > 0 
-                ? `Active Loadout: Playing ${displayVideos.length} custom video(s) in parallel loop.` 
-                : 'Showing default visual loops. Upload your own video files to /public/videos/ and run update command.'
-              }
+              Playing {displayVideos.length} custom video(s) in parallel loop.
             </p>
           </div>
-          {localVideosData.length > 0 && (
-            <span style={styles.countBadge}>
-              {displayVideos.length} REELS LOADED
-            </span>
-          )}
+          <span style={styles.countBadge}>
+            {displayVideos.length} REELS LOADED
+          </span>
         </div>
 
-        {/* 2-Column Grid (dynamically growing vertically) */}
+        {/* 2-Column Grid */}
         <div style={styles.grid} className="video-showcase-grid">
           {displayVideos.map((video) => {
             const hasError = videoErrors[video.id];
+            const cleanName = video.title || video.fileName?.split('.').slice(0, -1).join('.') || 'Showcase';
             
             return (
               <div key={video.id} style={styles.videoCard} className="video-hover-card">
@@ -104,26 +67,13 @@ export default function Showcase() {
                       <Film size={36} style={{ color: 'var(--color-brand-orange)', marginBottom: '12px' }} />
                       <p style={{ color: 'var(--color-ink)', fontWeight: 600, fontSize: '14px' }}>Asset Unavailable</p>
                       <p style={{ color: 'var(--color-mute)', fontSize: '11px', textAlign: 'center', padding: '0 16px' }}>
-                        {video.fileName || 'Check URL / local asset connection.'}
+                        {video.fileName || 'Check local asset connection.'}
                       </p>
                     </div>
                   )}
 
-                  {/* Top Category Badge */}
-                  <span style={styles.categoryBadge}>{video.category}</span>
-                </div>
-
-                {/* Info Box */}
-                <div style={styles.cardInfo}>
-                  <div style={styles.infoTitleRow}>
-                    <h3 style={styles.videoTitle}>{video.title}</h3>
-                    <a href={video.url} target="_blank" rel="noopener noreferrer" style={styles.linkIcon} title="Direct File Link">
-                      <ExternalLink size={14} />
-                    </a>
-                  </div>
-                  {video.description && (
-                    <p style={styles.videoDesc}>{video.description}</p>
-                  )}
+                  {/* Top Left File Name Badge */}
+                  <span style={styles.categoryBadge}>{cleanName}</span>
                 </div>
               </div>
             );
@@ -189,7 +139,6 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottom: '1px solid var(--color-hairline)',
   },
   video: {
     width: '100%',
