@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "update-videos": "node scripts/update-videos.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

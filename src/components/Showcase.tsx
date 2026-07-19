@@ -1,145 +1,133 @@
-import React, { useRef, useState } from 'react';
-import { Volume2, VolumeX, Play, Pause, ExternalLink, Film } from 'lucide-react';
+import React, { useState } from 'react';
+import { Film, ExternalLink } from 'lucide-react';
+import localVideosData from '../assets/videos.json';
 
-interface Project {
+interface VideoItem {
   id: string;
   title: string;
-  category: string;
-  description: string;
-  tags: string[];
-  duration: string;
-  previewUrl: string;
+  url: string;
+  fileName?: string;
+  category?: string;
+  description?: string;
 }
 
 export default function Showcase() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [videoError, setVideoError] = useState(false);
+  const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
 
-  // High-quality, fast-loading abstract space/starfield motion design loop video
-  const videoSourceUrl = 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-background-1611-large.mp4';
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
-    }
-  };
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play().catch(e => console.log("Play failed: ", e));
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const projects: Project[] = [
+  // Premium stock loop video fallbacks for demonstration when public/videos is empty
+  const defaultVideos: VideoItem[] = [
     {
-      id: '1',
-      title: 'Cosmic Drift — Motion Identity',
+      id: 'default-1',
+      title: 'Cosmic Starfield Loop',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-background-1611-large.mp4',
+      category: 'Space Motion',
+      description: 'Abstract particle space simulation exploring granular noise textures and depth of field.'
+    },
+    {
+      id: 'default-2',
+      title: 'Neon Motion Laser Loop',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-31908-large.mp4',
       category: 'Motion Design',
-      description: 'A dark, textured typographic logo animation exploring cosmic space physics and 3D kinetic lettering.',
-      tags: ['Cinema 4D', 'After Effects', 'Octane'],
-      duration: '0:15 Loop',
-      previewUrl: '#'
+      description: 'Chroma wave light streaks animated to simulate neon speedways and kinetic flows.'
     },
     {
-      id: '2',
-      title: 'ZORO Anime Glitch Reel',
-      category: 'Creative Direction',
-      description: 'High-contrast, stylized manga compilation leveraging chromatic aberration, grain overlay, and custom transitions.',
-      tags: ['Premiere Pro', 'Motion Design', 'Sound Design'],
-      duration: '0:30 Reel',
-      previewUrl: '#'
+      id: 'default-3',
+      title: 'Cyber Netlines Loop',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-neon-light-stripes-background-31920-large.mp4',
+      category: 'Visual Effects',
+      description: 'Vector paths shifting coordinates in 3D space with high-speed rendering glows.'
     },
     {
-      id: '3',
-      title: 'Vercel Geist Interactive UI Reel',
-      category: 'UI Motion',
-      description: 'Dynamic 3D mockups showcasing interface transitions and pixel-perfect developer component assemblies.',
-      tags: ['Figma', 'Rive', 'WebGl'],
-      duration: '0:45 Case Study',
-      previewUrl: '#'
+      id: 'default-4',
+      title: 'Chromatic Grid Loop',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-lines-loop-32986-large.mp4',
+      category: 'Typography/UI',
+      description: 'A 2.5D geometric projection exploring UI layout grid lines and kinetic triggers.'
     }
   ];
+
+  const displayVideos: VideoItem[] = localVideosData.length > 0 
+    ? (localVideosData as VideoItem[]).map((v) => ({
+        ...v,
+        category: 'Local Work',
+        description: `Imported portfolio video file: ${v.fileName || 'Reel'}`
+      }))
+    : defaultVideos;
+
+  const handleVideoError = (id: string) => {
+    setVideoErrors((prev: Record<string, boolean>) => ({ ...prev, [id]: true }));
+  };
 
   return (
     <section id="work" style={styles.section}>
       <div className="container">
-        <span className="eyebrow">SHOWCASE</span>
-        <h2 style={styles.sectionTitle}>Featured Video Reel</h2>
+        <span className="eyebrow">PORTFOLIO</span>
         
-        {/* Main Video Showcase Box (Design principle: rounded corners, hairline border, shadow) */}
-        <div style={styles.videoCard}>
-          <div style={styles.videoWrapper}>
-            {!videoError ? (
-              <video
-                ref={videoRef}
-                style={styles.video}
-                src={videoSourceUrl}
-                autoPlay
-                loop
-                muted={isMuted}
-                playsInline
-                onError={() => setVideoError(true)}
-              />
-            ) : (
-              /* Fallback beautiful motion design look if video is blocked/offline */
-              <div style={styles.fallbackPlayer}>
-                <div style={styles.fallbackBackground}></div>
-                <div style={styles.fallbackContent}>
-                  <Film size={48} style={{ color: 'var(--color-brand-orange)', marginBottom: '16px' }} />
-                  <p style={{ color: 'var(--color-ink)', fontWeight: 600, fontSize: '18px' }}>Cosmic Motion Loop</p>
-                  <p style={{ color: 'var(--color-mute)', fontSize: '14px', marginTop: '4px' }}>Active Loop Fallback Enabled</p>
-                </div>
-              </div>
-            )}
-
-            {/* Video Controls Overlay */}
-            <div style={styles.controlsOverlay}>
-              <div style={styles.controlsLeft}>
-                <button onClick={togglePlay} style={styles.circularButton} title={isPlaying ? "Pause" : "Play"}>
-                  {isPlaying ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
-                </button>
-                <button onClick={toggleMute} style={styles.circularButton} title={isMuted ? "Unmute" : "Mute"}>
-                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-              </div>
-              <span style={styles.videoBadge}>REEL_LOOP_NIMISH.MP4</span>
-            </div>
+        <div style={styles.headerRow}>
+          <div>
+            <h2 style={styles.sectionTitle}>Motion Design Showcase</h2>
+            <p style={styles.subText}>
+              {localVideosData.length > 0 
+                ? `Active Loadout: Playing ${displayVideos.length} custom video(s) in parallel loop.` 
+                : 'Showing default visual loops. Upload your own video files to /public/videos/ and run update command.'
+              }
+            </p>
           </div>
+          {localVideosData.length > 0 && (
+            <span style={styles.countBadge}>
+              {displayVideos.length} REELS LOADED
+            </span>
+          )}
         </div>
 
-        {/* Project Grid - Styled as Geist hairline Cards */}
-        <h3 style={styles.subHeading}>Selected Projects</h3>
-        <div style={styles.grid}>
-          {projects.map((proj) => (
-            <div key={proj.id} style={styles.projectCard} className="proj-card">
-              <div style={styles.cardHeader}>
-                <span style={styles.cardCategory}>{proj.category}</span>
-                <span style={styles.cardDuration}>{proj.duration}</span>
-              </div>
-              
-              <h4 style={styles.cardTitle}>{proj.title}</h4>
-              <p style={styles.cardDescription}>{proj.description}</p>
-              
-              <div style={styles.cardFooter}>
-                <div style={styles.tagsContainer}>
-                  {proj.tags.map((tag, i) => (
-                    <span key={i} style={styles.tag}>{tag}</span>
-                  ))}
+        {/* 2-Column Grid (dynamically growing vertically) */}
+        <div style={styles.grid} className="video-showcase-grid">
+          {displayVideos.map((video) => {
+            const hasError = videoErrors[video.id];
+            
+            return (
+              <div key={video.id} style={styles.videoCard} className="video-hover-card">
+                <div style={styles.videoWrapper}>
+                  {!hasError ? (
+                    <video
+                      style={styles.video}
+                      src={video.url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      onError={() => handleVideoError(video.id)}
+                    />
+                  ) : (
+                    /* Fallback design when video fails to load */
+                    <div style={styles.fallbackPlayer}>
+                      <Film size={36} style={{ color: 'var(--color-brand-orange)', marginBottom: '12px' }} />
+                      <p style={{ color: 'var(--color-ink)', fontWeight: 600, fontSize: '14px' }}>Asset Unavailable</p>
+                      <p style={{ color: 'var(--color-mute)', fontSize: '11px', textAlign: 'center', padding: '0 16px' }}>
+                        {video.fileName || 'Check URL / local asset connection.'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Top Category Badge */}
+                  <span style={styles.categoryBadge}>{video.category}</span>
                 </div>
-                <a href={proj.previewUrl} style={styles.cardLink}>
-                  <ExternalLink size={16} />
-                </a>
+
+                {/* Info Box */}
+                <div style={styles.cardInfo}>
+                  <div style={styles.infoTitleRow}>
+                    <h3 style={styles.videoTitle}>{video.title}</h3>
+                    <a href={video.url} target="_blank" rel="noopener noreferrer" style={styles.linkIcon} title="Direct File Link">
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                  {video.description && (
+                    <p style={styles.videoDesc}>{video.description}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -152,27 +140,56 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: '1px solid var(--color-hairline)',
     position: 'relative',
   },
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: '20px',
+    marginBottom: '48px',
+  },
   sectionTitle: {
     fontSize: '32px',
     letterSpacing: '-0.04em',
-    marginBottom: '40px',
+    marginBottom: '8px',
+  },
+  subText: {
+    color: 'var(--color-body)',
+    fontSize: '14px',
+    maxWidth: '500px',
+  },
+  countBadge: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '11px',
+    color: 'var(--color-brand-orange)',
+    backgroundColor: 'var(--color-brand-orange-soft)',
+    border: '1px solid var(--color-brand-orange)',
+    padding: '6px 12px',
+    borderRadius: 'var(--radius-sm)',
+    fontWeight: 600,
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)', /* Horizontally 2 videos by default */
+    gap: '32px',
   },
   videoCard: {
     backgroundColor: 'var(--color-canvas-elevated)',
-    border: '1px solid var(--color-hairline-bright)',
-    borderRadius: 'var(--radius-lg)', /* Large rounded corners */
+    border: '1px solid var(--color-hairline)',
+    borderRadius: 'var(--radius-lg)', /* Rounded corners */
     overflow: 'hidden',
-    boxShadow: 'var(--shadow-floating)',
-    marginBottom: '80px',
+    display: 'flex',
+    flexDirection: 'column',
   },
   videoWrapper: {
     position: 'relative',
     width: '100%',
     aspectRatio: '16/9',
-    backgroundColor: '#000',
+    backgroundColor: '#000000',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    borderBottom: '1px solid var(--color-hairline)',
   },
   video: {
     width: '100%',
@@ -180,140 +197,83 @@ const styles: Record<string, React.CSSProperties> = {
     objectFit: 'cover',
     display: 'block',
   },
-  controlsOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: '20px',
-    background: 'linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
-  },
-  controlsLeft: {
-    display: 'flex',
-    gap: '12px',
-  },
-  circularButton: {
-    width: '40px',
-    height: '40px',
-    borderRadius: 'var(--radius-full)', /* Circular button */
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(8px)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s, border-color 0.2s',
-  },
-  videoBadge: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '11px',
-    color: 'rgba(255, 255, 255, 0.6)',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: '4px 10px',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-  },
-  subHeading: {
-    fontSize: '20px',
-    letterSpacing: '-0.02em',
-    marginBottom: '24px',
-    color: 'var(--color-ink)',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '24px',
-  },
-  projectCard: {
-    backgroundColor: 'var(--color-canvas-elevated)',
-    border: '1px solid var(--color-hairline)',
-    borderRadius: 'var(--radius-md)', /* 12px card border radius matching spec */
-    padding: '24px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    minHeight: '220px',
-    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  cardCategory: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '11px',
-    color: 'var(--color-brand-orange)',
-    fontWeight: 500,
-    textTransform: 'uppercase',
-  },
-  cardDuration: {
-    fontSize: '12px',
-    color: 'var(--color-mute)',
-  },
-  cardTitle: {
-    fontSize: '18px',
-    fontWeight: 600,
-    color: 'var(--color-ink)',
-    marginBottom: '8px',
-  },
-  cardDescription: {
-    fontSize: '13px',
-    lineHeight: '19px',
-    color: 'var(--color-body)',
-    marginBottom: '20px',
-  },
-  cardFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  tagsContainer: {
-    display: 'flex',
-    gap: '6px',
-    flexWrap: 'wrap',
-  },
-  tag: {
-    fontFamily: 'var(--font-sans)',
-    fontSize: '11px',
-    color: 'var(--color-mute)',
-    backgroundColor: 'var(--color-canvas)',
-    border: '1px solid var(--color-hairline)',
-    padding: '2px 8px',
-    borderRadius: 'var(--radius-sm)',
-  },
-  cardLink: {
-    color: 'var(--color-body)',
-    transition: 'color 0.2s',
-    display: 'inline-flex',
-    alignItems: 'center',
-  },
   fallbackPlayer: {
     width: '100%',
     height: '100%',
-    position: 'relative',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    background: 'radial-gradient(circle at center, rgba(255, 90, 31, 0.05) 0%, rgba(0,0,0,0) 70%)',
   },
-  fallbackBackground: {
+  categoryBadge: {
     position: 'absolute',
-    inset: 0,
-    background: 'radial-gradient(circle at center, rgba(255, 90, 31, 0.08) 0%, rgba(121, 40, 202, 0.08) 40%, rgba(0,0,0,0) 80%)',
-    animation: 'pulseBackground 8s ease-in-out infinite alternate',
+    top: '12px',
+    left: '12px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    textTransform: 'uppercase',
+    color: '#ffffff',
+    backgroundColor: 'rgba(5, 5, 5, 0.7)',
+    backdropFilter: 'blur(4px)',
+    border: '1px solid var(--color-hairline-bright)',
+    padding: '4px 8px',
+    borderRadius: 'var(--radius-sm)',
   },
-  fallbackContent: {
-    zIndex: 1,
-    textAlign: 'center',
+  cardInfo: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
+  },
+  infoTitleRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px',
+  },
+  videoTitle: {
+    fontSize: '18px',
+    fontWeight: 600,
+    color: 'var(--color-ink)',
+    letterSpacing: '-0.02em',
+  },
+  linkIcon: {
+    color: 'var(--color-mute)',
+    transition: 'color 0.2s',
+  },
+  videoDesc: {
+    fontSize: '13px',
+    lineHeight: '19px',
+    color: 'var(--color-body)',
   },
 };
+
+// CSS injection for hover micro-animations and dynamic styling
+if (typeof document !== 'undefined') {
+  const css = `
+    .video-hover-card {
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s, box-shadow 0.35s;
+    }
+    
+    .video-hover-card:hover {
+      transform: scale(1.035); /* Smooth cursor hover scale effect */
+      border-color: var(--color-brand-orange) !important;
+      box-shadow: 0 16px 40px rgba(255, 90, 31, 0.08), 0 0 0 1.5px var(--color-brand-orange);
+    }
+    
+    .video-hover-card:hover a[style*="linkIcon"] {
+      color: var(--color-brand-orange) !important;
+    }
+    
+    @media (max-width: 768px) {
+      .video-showcase-grid {
+        grid-template-columns: 1fr !important; /* Stack vertically on small screens */
+        gap: 20px !important;
+      }
+    }
+  `;
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = css;
+  document.head.appendChild(styleSheet);
+}
