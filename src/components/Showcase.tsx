@@ -130,20 +130,21 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
+    height: '400px', /* Fixed uniform height for grid alignment */
   },
   videoWrapper: {
     position: 'relative',
     width: '100%',
-    aspectRatio: '16/9',
+    height: '100%',
     backgroundColor: '#000000',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   video: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
     display: 'block',
   },
   fallbackPlayer: {
