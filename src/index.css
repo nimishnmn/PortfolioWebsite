@@ -1,0 +1,209 @@
+/* Vercel Geist Design System — Cosmic Dark Adaptation */
+
+:root {
+  /* Color Palette */
+  --color-canvas: #050505;
+  --color-canvas-elevated: #0d0d0d;
+  --color-ink: #ffffff;
+  --color-body: #a3a3a3;
+  --color-mute: #666666;
+  --color-faint: #333333;
+  --color-hairline: #1f1f1f;
+  --color-hairline-bright: #2f2f2f;
+  --color-link: #0070f3;
+  --color-link-soft: #112244;
+  --color-error: #ff3333;
+  
+  /* Brand Specifics (Nimish's Orange Avatar Accent) */
+  --color-brand-orange: #ff5a1f;
+  --color-brand-orange-soft: rgba(255, 90, 31, 0.15);
+  --color-brand-orange-deep: #e04810;
+
+  /* Geist Typography System */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Bimodal Radii */
+  --radius-none: 0px;
+  --radius-sm: 6px;       /* App / nav buttons, inputs */
+  --radius-md: 12px;      /* Cards, terminal, code blocks */
+  --radius-lg: 16px;      /* Large panels, video showcase */
+  --radius-pill: 100px;   /* Marketing pills */
+  --radius-full: 9999px;  /* Circle / avatars */
+
+  /* Spacing */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+  --spacing-section: 128px;
+
+  /* Custom Glows & Shadows */
+  --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--color-hairline);
+  --shadow-floating: 0px 8px 30px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--color-hairline-bright);
+}
+
+/* Base resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Background Cosmic Noise Textures */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: radial-gradient(#ffffff 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Typography styles matching Geist system */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.05em; /* Tight Display Tracking */
+  color: var(--color-ink);
+}
+
+p {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-body);
+}
+
+/* Core grid layout */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* Mesh Gradient for Hero Background */
+.mesh-gradient-container {
+  position: absolute;
+  top: -10%;
+  left: 10%;
+  right: 10%;
+  height: 60%;
+  z-index: 0;
+  filter: blur(100px);
+  opacity: 0.35;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+}
+
+.mesh-gradient-circle {
+  width: 600px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--color-brand-orange) 0%,
+    #7928ca 30%,
+    #0070f3 60%,
+    #ff0080 100%
+  );
+  animation: rotateMesh 20s linear infinite;
+}
+
+@keyframes rotateMesh {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Utilities */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-mute);
+  display: block;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Glitch Typography hover effect for main title */
+.glitch-text {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+}
+
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-canvas);
+  color: var(--color-brand-orange);
+  overflow: hidden;
+  clip-path: rect(0 0 0 0); 
+}
+
+.glitch-text:hover::after {
+  animation: glitch-anim 0.3s infinite linear alternate-reverse;
+  clip-path: polygon(0 20%, 100% 20%, 100% 30%, 0 30%);
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip-path: polygon(0 15%, 100% 15%, 100% 25%, 0 25%);
+    transform: translate(-1px);
+  }
+  50% {
+    clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%);
+    transform: translate(2px);
+  }
+  100% {
+    clip-path: polygon(0 40%, 100% 40%, 100% 55%, 0 55%);
+    transform: translate(-1px);
+  }
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-faint);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mute);
+}
