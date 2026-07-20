@@ -39,15 +39,15 @@ export default function InfiniteStroke() {
       scrollYOffset: number
     ) => {
       const startX = width * 0.05;
-      const startY = height * 1.1;
-      const horizonX = width * 0.75;
+      const startY = height * 1.15;
+      const horizonX = width * 0.78;
       const horizonY = height * 0.28;
 
       const scrollFactor = scrollYOffset * 0.12;
-      const controlX = width * 0.25 + scrollFactor;
+      const controlX = width * 0.28 + scrollFactor;
       const controlY = height * 0.8 - scrollFactor * 0.2;
 
-      const slices = 50; // Optimized slice count for 120fps performance
+      const slices = 90; // High resolution slices for silky smooth curve geometry
       const leftPoints: { x: number; y: number }[] = [];
       const rightPoints: { x: number; y: number }[] = [];
 
@@ -64,7 +64,7 @@ export default function InfiniteStroke() {
         const y = cy1 + t * (cy2 - cy1);
 
         // Winding S-curve wave displacement (like a river)
-        const waveX = Math.sin(t * Math.PI * 2.3 - (scrollYOffset * 0.002)) * 160 * Math.pow(1 - t, 1.3);
+        const waveX = Math.sin(t * Math.PI * 2.3 - (scrollYOffset * 0.0018)) * 170 * Math.pow(1 - t, 1.25);
         const x = bx + waveX;
 
         // Path tangent vector
@@ -79,7 +79,7 @@ export default function InfiniteStroke() {
           const baseNextX = ncx1 + nextT * (ncx2 - ncx1);
           const nextY = ncy1 + nextT * (ncy2 - ncy1);
           
-          const nextWaveX = Math.sin(nextT * Math.PI * 2.3 - (scrollYOffset * 0.002)) * 160 * Math.pow(1 - nextT, 1.3);
+          const nextWaveX = Math.sin(nextT * Math.PI * 2.3 - (scrollYOffset * 0.0018)) * 170 * Math.pow(1 - nextT, 1.25);
           const nextX = baseNextX + nextWaveX;
           
           tx = nextX - x;
@@ -94,7 +94,7 @@ export default function InfiniteStroke() {
         const ny = len > 0 ? tx / len : 0;
 
         // Base width of the road (tapered)
-        const strokeWidth = 90 * Math.pow(1 - t, 2.5) * widthScale;
+        const strokeWidth = 95 * Math.pow(1 - t, 2.4) * widthScale;
 
         leftPoints.push({ x: x + nx * (strokeWidth / 2), y: y + ny * (strokeWidth / 2) });
         rightPoints.push({ x: x - nx * (strokeWidth / 2), y: y - ny * (strokeWidth / 2) });
@@ -121,41 +121,43 @@ export default function InfiniteStroke() {
       const width = canvas.width / window.devicePixelRatio;
       const height = canvas.height / window.devicePixelRatio;
 
-      // PASS 1: GPU-Accelerated Glow Pass (utilizing 1 native blur filter and layered fills)
+      // PASS 1: GPU-Accelerated Neon Glow Pass (using 'screen' blending to blend light refractions)
       ctx.save();
-      ctx.filter = 'blur(18px)';
+      ctx.globalCompositeOperation = 'screen';
+      ctx.filter = 'blur(36px)'; // Extreme blur for outer glow bloom
       ctx.globalAlpha = 0.5;
-      
-      // Layered glow borders (Pink -> Orange -> Blue)
-      drawRibbon(width, height, 1.6, 'rgba(255, 0, 80, 0.8)', scrollY);
-      drawRibbon(width, height, 1.1, 'rgba(255, 90, 31, 0.9)', scrollY);
-      drawRibbon(width, height, 0.5, 'rgba(0, 112, 243, 1)', scrollY);
+      drawRibbon(width, height, 1.9, 'rgba(255, 0, 80, 0.75)', scrollY);
+      drawRibbon(width, height, 1.3, 'rgba(255, 90, 31, 0.85)', scrollY);
+      drawRibbon(width, height, 0.65, 'rgba(0, 112, 243, 1)', scrollY);
       ctx.restore();
 
-      // PASS 2: Medium Glow Pass (crisp overlay)
+      // PASS 2: Medium Glow Pass (Crisp inner glow bloom)
       ctx.save();
-      ctx.filter = 'blur(6px)';
-      ctx.globalAlpha = 0.7;
-      drawRibbon(width, height, 1.2, 'rgba(255, 0, 80, 0.9)', scrollY);
-      drawRibbon(width, height, 0.8, 'rgba(255, 90, 31, 0.95)', scrollY);
-      drawRibbon(width, height, 0.35, 'rgba(0, 112, 243, 1)', scrollY);
+      ctx.globalCompositeOperation = 'screen';
+      ctx.filter = 'blur(12px)'; // Mid blur
+      ctx.globalAlpha = 0.75;
+      drawRibbon(width, height, 1.4, 'rgba(255, 0, 80, 0.85)', scrollY);
+      drawRibbon(width, height, 0.9, 'rgba(255, 90, 31, 0.9)', scrollY);
+      drawRibbon(width, height, 0.45, 'rgba(0, 112, 243, 1)', scrollY);
       ctx.restore();
 
-      // PASS 3: Sharp Core Pass (Zero blur, perfect anti-aliased geometry)
+      // PASS 3: Smooth Core Pass (1.5px blur acts as perfect anti-aliasing to eliminate jagged vector edges!)
       ctx.save();
-      ctx.filter = 'none';
-      drawRibbon(width, height, 0.85, '#ff0050', scrollY);
-      drawRibbon(width, height, 0.55, '#ff5a1f', scrollY);
-      drawRibbon(width, height, 0.22, '#ffffff', scrollY); // Bright white core center!
+      ctx.filter = 'blur(1.5px)'; 
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      drawRibbon(width, height, 0.95, '#ff0050', scrollY);
+      drawRibbon(width, height, 0.65, '#ff5a1f', scrollY);
+      drawRibbon(width, height, 0.28, '#ffffff', scrollY); // Bright white core center
       ctx.restore();
 
       // Draw the glowing Concorde plane silhouette
       const startX = width * 0.05;
-      const startY = height * 1.1;
-      const horizonX = width * 0.75;
+      const startY = height * 1.15;
+      const horizonX = width * 0.78;
       const horizonY = height * 0.28;
       const scrollFactor = scrollY * 0.12;
-      const controlX = width * 0.25 + scrollFactor;
+      const controlX = width * 0.28 + scrollFactor;
       const controlY = height * 0.8 - scrollFactor * 0.2;
 
       const planeT = 0.75;
@@ -168,7 +170,7 @@ export default function InfiniteStroke() {
       const basePlaneX = pcx1 + planeT * (pcx2 - pcx1);
       const basePlaneY = pcy1 + planeT * (pcy2 - pcy1);
       
-      const planeWaveX = Math.sin(planeT * Math.PI * 2.3 - (scrollY * 0.002)) * 160 * Math.pow(1 - planeT, 1.3);
+      const planeWaveX = Math.sin(planeT * Math.PI * 2.3 - (scrollY * 0.0018)) * 170 * Math.pow(1 - planeT, 1.25);
       const planeX = basePlaneX + planeWaveX + 15;
       const planeY = basePlaneY - 32 + floatOffset + (scrollY * 0.05);
 

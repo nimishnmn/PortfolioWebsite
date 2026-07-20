@@ -10,12 +10,12 @@ export default function Hero() {
 
       <div className="container" style={styles.container}>
         <span className="eyebrow" style={styles.eyebrow}>
-          CREATIVE DIRECTION & MOTION DESIGN
+          Motion designer & creative director.
         </span>
         
         <h1 style={styles.heading}>
           Designing the <br />
-          <span style={styles.gradientText}>Future of Motion</span>.
+          <span style={styles.gradientText}>Future</span> of Motion.
         </h1>
 
         {/* Minimalistic Left-Aligned CTA */}

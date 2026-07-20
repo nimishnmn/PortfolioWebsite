@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Film } from 'lucide-react';
 import localVideosData from '../assets/videos.json';
 
 interface VideoItem {
@@ -17,7 +16,8 @@ export default function Showcase() {
 
   const displayVideos: VideoItem[] = localVideosData as VideoItem[];
 
-  if (displayVideos.length === 0) {
+  const failedCount = Object.keys(videoErrors).filter(key => videoErrors[key]).length;
+  if (displayVideos.length === 0 || failedCount === displayVideos.length) {
     return null;
   }
 
@@ -40,30 +40,20 @@ export default function Showcase() {
           {displayVideos.map((video) => {
             const hasError = videoErrors[video.id];
             const cleanName = video.title || video.fileName?.split('.').slice(0, -1).join('.') || 'Showcase';
-            
+            if (hasError) return null;
+
             return (
               <div key={video.id} style={styles.videoCard} className="video-hover-card">
                 <div style={styles.videoWrapper}>
-                  {!hasError ? (
-                    <video
-                      style={styles.video}
-                      src={video.url}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      onError={() => handleVideoError(video.id)}
-                    />
-                  ) : (
-                    /* Fallback design when video fails to load */
-                    <div style={styles.fallbackPlayer}>
-                      <Film size={36} style={{ color: 'var(--color-brand-orange)', marginBottom: '12px' }} />
-                      <p style={{ color: 'var(--color-ink)', fontWeight: 600, fontSize: '14px' }}>Asset Unavailable</p>
-                      <p style={{ color: 'var(--color-mute)', fontSize: '11px', textAlign: 'center', padding: '0 16px' }}>
-                        {video.fileName || 'Check local asset connection.'}
-                      </p>
-                    </div>
-                  )}
+                  <video
+                    style={styles.video}
+                    src={video.url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onError={() => handleVideoError(video.id)}
+                  />
 
                   {/* Top Left File Name Badge */}
                   <span style={styles.categoryBadge}>{cleanName}</span>
