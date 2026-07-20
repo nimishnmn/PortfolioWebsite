@@ -30,7 +30,19 @@ export default function InfiniteStroke() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // High-performance ribbon drawing (draws a single unified polygon to avoid loop fill lag)
+    // Generate space theme stars (twinkling in hardware-accelerated loops)
+    const stars: { x: number; y: number; size: number; phase: number; speed: number }[] = [];
+    for (let i = 0; i < 90; i++) {
+      stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        size: Math.random() * 1.2 + 0.4,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.015 + 0.005,
+      });
+    }
+
+    // High-performance ribbon drawing
     const drawRibbon = (
       width: number,
       height: number,
@@ -47,7 +59,7 @@ export default function InfiniteStroke() {
       const controlX = width * 0.28 + scrollFactor;
       const controlY = height * 0.8 - scrollFactor * 0.2;
 
-      const slices = 90; // High resolution slices for silky smooth curve geometry
+      const slices = 90;
       const leftPoints: { x: number; y: number }[] = [];
       const rightPoints: { x: number; y: number }[] = [];
 
@@ -93,8 +105,8 @@ export default function InfiniteStroke() {
         const nx = len > 0 ? -ty / len : -1;
         const ny = len > 0 ? tx / len : 0;
 
-        // Base width of the road (tapered)
-        const strokeWidth = 95 * Math.pow(1 - t, 2.4) * widthScale;
+        // Thicker width scaling (reduced power exponent and higher base size for prominent curves)
+        const strokeWidth = 145 * Math.pow(1 - t, 1.85) * widthScale;
 
         leftPoints.push({ x: x + nx * (strokeWidth / 2), y: y + ny * (strokeWidth / 2) });
         rightPoints.push({ x: x - nx * (strokeWidth / 2), y: y - ny * (strokeWidth / 2) });
@@ -121,34 +133,47 @@ export default function InfiniteStroke() {
       const width = canvas.width / window.devicePixelRatio;
       const height = canvas.height / window.devicePixelRatio;
 
-      // PASS 1: GPU-Accelerated Neon Glow Pass (using 'screen' blending to blend light refractions)
+      // PASS 0: Twinkling Space Theme Stars in background
+      ctx.save();
+      for (const star of stars) {
+        const sx = star.x * width;
+        const sy = star.y * height;
+        const alpha = 0.2 + Math.sin(Date.now() * star.speed + star.phase) * 0.45;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.05, Math.min(1, alpha))})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // PASS 1: GPU-Accelerated Neon Glow Pass
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      ctx.filter = 'blur(36px)'; // Extreme blur for outer glow bloom
+      ctx.filter = 'blur(36px)';
       ctx.globalAlpha = 0.5;
       drawRibbon(width, height, 1.9, 'rgba(255, 0, 80, 0.75)', scrollY);
       drawRibbon(width, height, 1.3, 'rgba(255, 90, 31, 0.85)', scrollY);
       drawRibbon(width, height, 0.65, 'rgba(0, 112, 243, 1)', scrollY);
       ctx.restore();
 
-      // PASS 2: Medium Glow Pass (Crisp inner glow bloom)
+      // PASS 2: Medium Glow Pass
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      ctx.filter = 'blur(12px)'; // Mid blur
+      ctx.filter = 'blur(12px)';
       ctx.globalAlpha = 0.75;
       drawRibbon(width, height, 1.4, 'rgba(255, 0, 80, 0.85)', scrollY);
       drawRibbon(width, height, 0.9, 'rgba(255, 90, 31, 0.9)', scrollY);
       drawRibbon(width, height, 0.45, 'rgba(0, 112, 243, 1)', scrollY);
       ctx.restore();
 
-      // PASS 3: Smooth Core Pass (1.5px blur acts as perfect anti-aliasing to eliminate jagged vector edges!)
+      // PASS 3: Smooth Core Pass (anti-aliased)
       ctx.save();
-      ctx.filter = 'blur(1.5px)'; 
+      ctx.filter = 'blur(1.5px)';
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       drawRibbon(width, height, 0.95, '#ff0050', scrollY);
       drawRibbon(width, height, 0.65, '#ff5a1f', scrollY);
-      drawRibbon(width, height, 0.28, '#ffffff', scrollY); // Bright white core center
+      drawRibbon(width, height, 0.28, '#ffffff', scrollY);
       ctx.restore();
 
       // Draw the glowing Concorde plane silhouette
@@ -202,18 +227,6 @@ export default function InfiniteStroke() {
       ctx.fillStyle = '#ffffff';
       ctx.shadowBlur = 10;
       ctx.shadowColor = '#ffffff';
-      ctx.fill();
-      ctx.restore();
-
-      // Infinite End point glow
-      ctx.save();
-      const horizonGlow = ctx.createRadialGradient(horizonX, horizonY, 0, horizonX, horizonY, 40);
-      horizonGlow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-      horizonGlow.addColorStop(0.5, 'rgba(121, 40, 202, 0.1)');
-      horizonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = horizonGlow;
-      ctx.beginPath();
-      ctx.arc(horizonX, horizonY, 40, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 

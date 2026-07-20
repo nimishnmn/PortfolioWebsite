@@ -1,14 +1,29 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import InfiniteStroke from './InfiniteStroke';
 
 export default function Hero() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const slideStyle = {
+    transform: `translateX(-${scrollY * 1.15}px)`,
+    opacity: Math.max(0, 1 - scrollY / 400),
+  };
+
   return (
     <section style={styles.heroSection}>
       {/* 3D Infinite Perspective Chromatographic Stroke Background */}
       <InfiniteStroke />
 
-      <div className="container" style={styles.container}>
+      <div className="container" style={{ ...styles.container, ...slideStyle }}>
         <span className="eyebrow" style={styles.eyebrow}>
           Motion designer & creative director.
         </span>
@@ -32,15 +47,18 @@ export default function Hero() {
 
 const styles: Record<string, React.CSSProperties> = {
   heroSection: {
-    position: 'relative',
-    padding: '220px 0 140px 0',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100vh',
+    zIndex: 1,
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'left',
     overflow: 'hidden',
-    minHeight: '85vh',
+    backgroundColor: '#050505', // Deep space background
   },
   container: {
     position: 'relative',
@@ -49,6 +67,8 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'flex-start',
     width: '100%',
+    transition: 'transform 0.1s ease-out, opacity 0.1s ease-out',
+    pointerEvents: 'auto',
   },
   eyebrow: {
     fontSize: '11px',
@@ -62,8 +82,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '64px',
     lineHeight: '1.05',
     fontWeight: 700,
-    letterSpacing: '-0.06em', // Sleek tightly-tracked Geist Display typography
-    color: 'var(--color-ink)',
+    letterSpacing: '-0.06em',
+    color: '#ffffff',
     maxWidth: '750px',
     marginBottom: '32px',
   },
@@ -87,56 +107,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '13px',
     fontWeight: 500,
     padding: '8px 16px',
-    borderRadius: 'var(--radius-pill)', /* Small pill CTA */
+    borderRadius: 'var(--radius-pill)',
     textDecoration: 'none',
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
     cursor: 'pointer',
   },
 };
 
-// Add styles injection for polar aurora animations
+// Inject hover styles
 if (typeof document !== 'undefined') {
   const css = `
-    .aurora-left-container {
-      position: absolute;
-      top: 0;
-      left: -15%;
-      width: 45%;
-      height: 100%;
-      z-index: 0;
-      filter: blur(140px);
-      opacity: 0.24;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-    }
-    
-    .aurora-glow {
-      width: 100%;
-      height: 80%;
-      background: linear-gradient(
-        180deg,
-        #0070f3 0%,   /* Aurora Blue */
-        #ff0080 50%,   /* Aurora Pink */
-        #7928ca 100%   /* Aurora Purple */
-      );
-      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-      animation: auroraWave 22s ease-in-out infinite alternate;
-    }
-    
-    @keyframes auroraWave {
-      0% {
-        transform: rotate(0deg) scale(1) translate(0px, 0px);
-      }
-      50% {
-        transform: rotate(90deg) scale(1.1) translate(20px, -40px);
-        border-radius: 50% 40% 60% 40% / 50% 60% 40% 50%;
-      }
-      100% {
-        transform: rotate(180deg) scale(1) translate(-10px, 10px);
-      }
-    }
-    
     .btn-minimal:hover {
       background-color: var(--color-brand-orange-soft) !important;
       border-color: var(--color-brand-orange) !important;
@@ -149,13 +129,6 @@ if (typeof document !== 'undefined') {
         font-size: 42px !important;
         line-height: 1.1 !important;
         letter-spacing: -0.04em !important;
-      }
-      section[style*="heroSection"] {
-        padding: 160px 0 100px 0 !important;
-      }
-      .aurora-left-container {
-        width: 70% !important;
-        left: -20% !important;
       }
     }
   `;

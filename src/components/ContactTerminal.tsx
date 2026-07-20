@@ -171,11 +171,9 @@ export default function ContactTerminal() {
     </section>
   );
 }
-
 const styles: Record<string, React.CSSProperties> = {
   section: {
     padding: '100px 0',
-    borderTop: '1px solid var(--color-hairline)',
   },
   sectionTitle: {
     fontSize: '32px',

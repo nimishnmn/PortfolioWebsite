@@ -69,8 +69,7 @@ export default function Showcase() {
 
 const styles: Record<string, React.CSSProperties> = {
   section: {
-    padding: '100px 0',
-    borderTop: '1px solid var(--color-hairline)',
+    padding: '120px 0 60px 0',
     position: 'relative',
   },
   headerRow: {
