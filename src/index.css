@@ -204,7 +204,10 @@ p {
     flex-direction: column !important;
     gap: 20px !important;
   }
-  .video-hover-card { width: 100% !important; }
+  .video-hover-card { 
+    width: 100% !important;
+    flex: none !important;
+  }
   /* Disable aurora on mobile to save battery */
   .aurora-blob { display: none; }
 }
