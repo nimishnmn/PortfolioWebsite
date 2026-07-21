@@ -183,7 +183,11 @@ p {
 }
 
 @media (max-width: 992px) {
+  #work {
+    height: auto !important;
+  }
   .showcase-layout-container {
+    height: auto !important;
     flex-direction: column !important;
     gap: 24px !important;
     padding: 0 24px !important;
@@ -197,7 +201,17 @@ p {
     z-index: 3;
     position: sticky;
   }
-  .showcase-right-col { width: 100% !important; }
+  .showcase-right-col { 
+    width: 100% !important; 
+    height: auto !important;
+  }
+  .showcase-scroll-container {
+    height: auto !important;
+    overflow-y: visible !important;
+    flex: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
 }
 @media (max-width: 768px) {
   .justified-video-row {
