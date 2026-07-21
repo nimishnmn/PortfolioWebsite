@@ -48,15 +48,26 @@ function LazyVideo({ src, onError, onAspectRatio }: { src: string; onError: () =
     }
   }, [extractRatio]);
 
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
   return (
     <video
       ref={videoRef}
-      style={styles.video}
+      style={{ ...styles.video, cursor: 'pointer' }}
       src={src}
       preload="metadata"
       loop
       muted
       playsInline
+      onClick={togglePlay}
       onError={onError}
       onLoadedMetadata={extractRatio}
     />
@@ -93,9 +104,6 @@ function VideoCard({ video, onError, flex, onAspectRatio }: { video: VideoItem; 
     <div style={{ ...styles.videoCard, flexGrow: flex, flexShrink: 1, flexBasis: 0 }} className="video-hover-card">
       <div style={styles.videoWrapper}>
         <LazyVideo src={video.url} onError={() => onError(video.id)} onAspectRatio={onAspectRatio} />
-        <span style={styles.categoryBadge} className="video-category-badge">
-          {video.title?.trim() || video.fileName?.split('.').slice(0, -1).join('.') || 'Showcase'}
-        </span>
       </div>
     </div>
   );
