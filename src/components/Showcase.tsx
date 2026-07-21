@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import localVideosData from '../assets/videos.json';
+import { useReveal } from '../lib/useReveal';
 
 interface VideoItem {
   id: string;
@@ -10,57 +11,195 @@ interface VideoItem {
   description?: string;
 }
 
-export default function Showcase() {
-  const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
+function LazyVideo({ src, onError, onAspectRatio }: { src: string; onError: () => void; onAspectRatio: (r: number) => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsIntersecting(entry.isIntersecting),
+      { rootMargin: '0px 0px 100px 0px', threshold: 0.01 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
-  const displayVideos: VideoItem[] = localVideosData as VideoItem[];
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isIntersecting) video.play().catch(() => {});
+    else video.pause();
+  }, [isIntersecting]);
 
-  const failedCount = Object.keys(videoErrors).filter(key => videoErrors[key]).length;
-  if (displayVideos.length === 0 || failedCount === displayVideos.length) {
-    return null;
-  }
+  const extractRatio = useCallback(() => {
+    const video = videoRef.current;
+    if (video && video.videoWidth && video.videoHeight) {
+      onAspectRatio(video.videoWidth / video.videoHeight);
+    }
+  }, [onAspectRatio]);
 
-  const handleVideoError = (id: string) => {
-    setVideoErrors((prev: Record<string, boolean>) => ({ ...prev, [id]: true }));
-  };
+  // Robust check for cached videos that already have metadata on mount
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && video.readyState >= 1) { // HAVE_METADATA or higher
+      extractRatio();
+    }
+  }, [extractRatio]);
 
   return (
-    <section id="work" style={styles.section}>
-      <div className="container">
-        
-        <div style={styles.headerRow}>
-          <div>
-            <h2 style={styles.sectionTitle}>Showcase</h2>
+    <video
+      ref={videoRef}
+      style={styles.video}
+      src={src}
+      preload="metadata"
+      loop
+      muted
+      playsInline
+      onError={onError}
+      onLoadedMetadata={extractRatio}
+    />
+  );
+}
+
+function VideoRow({ row, rowIdx, onError }: { row: VideoItem[]; rowIdx: number; onError: (id: string) => void }) {
+  const rowRef = useReveal(0.05);
+  const [ratios, setRatios] = useState<(number | null)[]>([null, null]);
+  const video1 = row[0];
+  const video2 = row[1];
+
+  const defaultRatio = 16 / 9;
+  const r1 = ratios[0] ?? defaultRatio;
+  const r2 = ratios[1] ?? defaultRatio;
+
+  return (
+    <div
+      ref={rowRef as React.RefObject<HTMLDivElement>}
+      style={{ ...styles.row, transitionDelay: `${rowIdx * 60}ms` }}
+      className="justified-video-row reveal"
+    >
+      <VideoCard video={video1} onError={onError} flex={r1} onAspectRatio={r => setRatios(prev => [r, prev[1]])} />
+      {video2
+        ? <VideoCard video={video2} onError={onError} flex={r2} onAspectRatio={r => setRatios(prev => [prev[0], r])} />
+        : <div style={styles.spacerCard} />
+      }
+    </div>
+  );
+}
+
+function VideoCard({ video, onError, flex, onAspectRatio }: { video: VideoItem; onError: (id: string) => void; flex: number; onAspectRatio: (r: number) => void }) {
+  return (
+    <div style={{ ...styles.videoCard, flexGrow: flex, flexShrink: 1, flexBasis: 0 }} className="video-hover-card">
+      <div style={styles.videoWrapper}>
+        <LazyVideo src={video.url} onError={() => onError(video.id)} onAspectRatio={onAspectRatio} />
+        <span style={styles.categoryBadge} className="video-category-badge">
+          {video.title?.trim() || video.fileName?.split('.').slice(0, -1).join('.') || 'Showcase'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function Showcase() {
+  const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
+  const titleRef = useReveal(0.2);
+  const sectionRef = useRef<HTMLElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Window-level wheel capture
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const slab = sectionRef.current?.closest('.glass-slab') as HTMLElement | null;
+      if (!slab) return;
+
+      const slabRect = slab.getBoundingClientRect();
+      const isSticky = slabRect.top >= -1 && slabRect.top <= 4;
+
+      if (!isSticky) return;
+
+      const atTop = container.scrollTop <= 0;
+      const atBottom =
+        container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+
+      // At boundary: let the event reach the page → seamless page scroll
+      if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) return;
+
+      e.preventDefault();
+      container.scrollBy({ top: e.deltaY });
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const displayVideos: VideoItem[] = (localVideosData as VideoItem[]).filter(
+    v => !videoErrors[v.id]
+  );
+
+  const handleVideoError = (id: string) =>
+    setVideoErrors(prev => ({ ...prev, [id]: true }));
+
+  if (displayVideos.length === 0) return null;
+
+  const rows: VideoItem[][] = [];
+  for (let i = 0; i < displayVideos.length; i += 2) {
+    rows.push(displayVideos.slice(i, i + 2));
+  }
+
+  return (
+    <section id="work" ref={sectionRef} style={styles.section}>
+      <div className="showcase-layout-container" style={styles.flexLayout}>
+
+        <div style={styles.leftCol} className="showcase-left-col">
+          <h2
+            ref={titleRef as React.RefObject<HTMLHeadingElement>}
+            style={styles.sectionTitle}
+            className="reveal showcase-title"
+          >
+            Showcase
+          </h2>
+
+          <div className="showcase-socials" style={styles.socials}>
+            <a
+              href="https://www.instagram.com/n1mish_/"
+              target="_blank"
+              rel="noreferrer"
+              style={styles.socialLink}
+              className="footer-social-link"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://x.com/nifee_x"
+              target="_blank"
+              rel="noreferrer"
+              style={styles.socialLink}
+              className="footer-social-link"
+            >
+              X
+            </a>
           </div>
         </div>
 
-        {/* 2-Column Grid */}
-        <div style={styles.grid} className="video-showcase-grid">
-          {displayVideos.map((video) => {
-            const hasError = videoErrors[video.id];
-            const cleanName = video.title || video.fileName?.split('.').slice(0, -1).join('.') || 'Showcase';
-            if (hasError) return null;
-
-            return (
-              <div key={video.id} style={styles.videoCard} className="video-hover-card">
-                <div style={styles.videoWrapper}>
-                  <video
-                    style={styles.video}
-                    src={video.url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onError={() => handleVideoError(video.id)}
-                  />
-
-                  {/* Top Left File Name Badge */}
-                  <span style={styles.categoryBadge}>{cleanName}</span>
-                </div>
-              </div>
-            );
-          })}
+        <div style={styles.rightCol} className="showcase-right-col">
+          <div
+            ref={scrollRef}
+            className="showcase-scroll-container"
+            style={styles.scrollContainer}
+          >
+            {rows.map((row, rowIdx) => (
+              <VideoRow
+                key={rowIdx}
+                row={row}
+                rowIdx={rowIdx}
+                onError={handleVideoError}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -69,143 +208,116 @@ export default function Showcase() {
 
 const styles: Record<string, React.CSSProperties> = {
   section: {
-    padding: '120px 0 60px 0',
     position: 'relative',
+    height: '100%',
+    boxSizing: 'border-box',
+    background: 'linear-gradient(160deg, rgba(40,12,5,0.0) 0%, rgba(60,18,8,0.15) 40%, rgba(30,10,5,0.0) 100%)',
+    borderTop: '1px solid rgba(255,90,31,0.14)',
   },
-  headerRow: {
+  flexLayout: {
     display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    gap: '20px',
-    marginBottom: '48px',
+    gap: '48px',
+    alignItems: 'stretch',
+    padding: '0 5%',
+    width: '100%',
+    height: '100%',
+    boxSizing: 'border-box',
   },
-  sectionTitle: {
-    fontSize: '32px',
-    letterSpacing: '-0.04em',
-    marginBottom: '8px',
+  leftCol: {
+    paddingTop: '56px',
+    width: '28%',
+    flexShrink: 0,
   },
-  subText: {
-    color: 'var(--color-body)',
-    fontSize: '14px',
-    maxWidth: '500px',
-  },
-  countBadge: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '11px',
-    color: 'var(--color-brand-orange)',
-    backgroundColor: 'var(--color-brand-orange-soft)',
-    border: '1px solid var(--color-brand-orange)',
-    padding: '6px 12px',
-    borderRadius: 'var(--radius-sm)',
-    fontWeight: 600,
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)', /* Horizontally 2 videos by default */
-    gap: '32px',
-  },
-  videoCard: {
-    backgroundColor: 'var(--color-canvas-elevated)',
-    border: '1px solid var(--color-hairline)',
-    borderRadius: 'var(--radius-lg)', /* Rounded corners */
-    overflow: 'hidden',
+  rightCol: {
+    width: '72%',
+    flexGrow: 1,
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    height: '400px', /* Fixed uniform height for grid alignment */
+  },
+  scrollContainer: {
+    flex: 1,
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px', // Absolute constant margin between rows
+    paddingTop: '56px',
+    paddingBottom: '56px',
+    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 1) 120px)',
+    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 1) 120px)',
+  },
+  sectionTitle: {
+    fontSize: 'clamp(32px, 6vw, 64px)',
+    fontWeight: 700,
+    letterSpacing: '-0.05em',
+    color: '#ffffff',
+    lineHeight: '1.05',
+    margin: 0,
+  },
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    gap: '24px', // Absolute constant margin horizontally
+    alignItems: 'flex-start',
+    contentVisibility: 'auto',
+    containIntrinsicSize: 'auto 340px',
+  },
+  videoCard: {
+    background: 'linear-gradient(135deg, rgba(30,12,5,0.55) 0%, rgba(15,6,3,0.8) 100%)',
+    border: '1px solid rgba(255,90,31,0.12)',
+    borderRadius: 'var(--radius-lg)', // Flawlessly wraps intrinsic video height
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    minWidth: 0,
+    boxShadow: 'inset 0 1px 0 rgba(255,120,60,0.06), 0 4px 24px rgba(0,0,0,0.4)',
+    position: 'relative',
+  },
+  spacerCard: {
+    flexGrow: 1.777, // Provide a generic weight if it's an odd video out
+    flexShrink: 1,
+    flexBasis: 0,
+    visibility: 'hidden' as const,
   },
   videoWrapper: {
     position: 'relative',
     width: '100%',
-    height: '100%',
-    backgroundColor: '#000000',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   video: {
-    maxWidth: '100%',
-    maxHeight: '100%',
-    objectFit: 'contain',
-    display: 'block',
-  },
-  fallbackPlayer: {
     width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'radial-gradient(circle at center, rgba(255, 90, 31, 0.05) 0%, rgba(0,0,0,0) 70%)',
+    height: 'auto',
+    display: 'block',
   },
   categoryBadge: {
     position: 'absolute',
-    top: '12px',
-    left: '12px',
+    top: '16px',
+    left: '16px',
     fontFamily: 'var(--font-mono)',
     fontSize: '10px',
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     color: '#ffffff',
-    backgroundColor: 'rgba(5, 5, 5, 0.7)',
-    backdropFilter: 'blur(4px)',
-    border: '1px solid var(--color-hairline-bright)',
+    backgroundColor: 'rgba(5,5,5,0.8)',
+    border: '1px solid rgba(255,255,255,0.08)',
     padding: '4px 8px',
     borderRadius: 'var(--radius-sm)',
   },
-  cardInfo: {
-    padding: '20px',
+  socials: {
+    marginTop: '20px',
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 1,
+    gap: '6px',
   },
-  infoTitleRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '8px',
-  },
-  videoTitle: {
-    fontSize: '18px',
-    fontWeight: 600,
-    color: 'var(--color-ink)',
-    letterSpacing: '-0.02em',
-  },
-  linkIcon: {
-    color: 'var(--color-mute)',
-    transition: 'color 0.2s',
-  },
-  videoDesc: {
+  socialLink: {
+    fontFamily: 'var(--font-sans)',
     fontSize: '13px',
-    lineHeight: '19px',
-    color: 'var(--color-body)',
+    fontWeight: 400,
+    letterSpacing: '0.01em',
+    color: 'var(--color-mute)',
+    textDecoration: 'none',
+    width: 'fit-content',
+    transition: 'color 0.2s ease',
   },
 };
-
-// CSS injection for hover micro-animations and dynamic styling
-if (typeof document !== 'undefined') {
-  const css = `
-    .video-hover-card {
-      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s, box-shadow 0.35s;
-    }
-    
-    .video-hover-card:hover {
-      transform: scale(1.035); /* Smooth cursor hover scale effect */
-      border-color: var(--color-brand-orange) !important;
-      box-shadow: 0 16px 40px rgba(255, 90, 31, 0.08), 0 0 0 1.5px var(--color-brand-orange);
-    }
-    
-    .video-hover-card:hover a[style*="linkIcon"] {
-      color: var(--color-brand-orange) !important;
-    }
-    
-    @media (max-width: 768px) {
-      .video-showcase-grid {
-        grid-template-columns: 1fr !important; /* Stack vertically on small screens */
-        gap: 20px !important;
-      }
-    }
-  `;
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = css;
-  document.head.appendChild(styleSheet);
-}

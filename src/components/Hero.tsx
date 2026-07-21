@@ -1,42 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import InfiniteStroke from './InfiniteStroke';
 
+const AnimatedText = ({ text, delayOffset = 0, gradient = false }: { text: string; delayOffset?: number; gradient?: boolean }) => (
+  <>
+    {text.split(' ').map((word, i) => (
+      <span
+        key={i}
+        style={{
+          display: 'inline-block',
+          animation: `revealWord 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+          animationDelay: `${delayOffset + i * 0.08}s`,
+          opacity: 0,
+          transform: 'translateY(15px)',
+          ...(gradient ? styles.gradientText : {})
+        }}
+      >
+        {word}&nbsp;
+      </span>
+    ))}
+  </>
+);
+
 export default function Hero() {
   const [scrollY, setScrollY] = useState(0);
+  const [heroHidden, setHeroHidden] = useState(false);
+
+  useEffect(() => {
+    const container = document.querySelector('.hero-content-container');
+    if (container) setTimeout(() => container.classList.add('is-visible'), 120);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      const y = window.scrollY;
+      setScrollY(y);
+      setHeroHidden(y > window.innerHeight * 0.75);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const slideStyle = {
-    transform: `translateX(-${scrollY * 1.15}px)`,
+    transform: `translateX(${-(scrollY * 1.15)}px)`,
     opacity: Math.max(0, 1 - scrollY / 400),
   };
 
   return (
-    <section style={styles.heroSection}>
-      {/* 3D Infinite Perspective Chromatographic Stroke Background */}
-      <InfiniteStroke />
+    <section style={{ ...styles.heroSection, visibility: heroHidden ? 'hidden' as const : 'visible' }}>
+      <InfiniteStroke scrollY={scrollY} heroHidden={heroHidden} />
 
-      <div className="container" style={{ ...styles.container, ...slideStyle }}>
+      <div className="container hero-content-container reveal-stagger" style={{ ...styles.container, ...slideStyle }}>
         <span className="eyebrow" style={styles.eyebrow}>
-          Motion designer & creative director.
+          <AnimatedText text="Motion designer & creative director." delayOffset={0} />
         </span>
-        
+
         <h1 style={styles.heading}>
-          Designing the <br />
-          <span style={styles.gradientText}>Future</span> of Motion.
+          <AnimatedText text="Hi, I'm Nimish" delayOffset={0.3} />
+          <br />
+          <AnimatedText text="I " delayOffset={0.3 + 3 * 0.08} />
+          <AnimatedText text="Love" gradient delayOffset={0.3 + 4 * 0.08} />
+          <AnimatedText text=" to create Videos" delayOffset={0.3 + 5 * 0.08} />
         </h1>
 
-        {/* Minimalistic Left-Aligned CTA */}
         <div style={styles.ctaGroup}>
-          <a href="#contact" style={styles.minimalButton} className="btn-minimal">
-            Contact Me
+          <a href="#work" style={styles.minimalButton} className="btn-minimal">
+            View Work
             <ArrowRight size={14} style={{ marginLeft: '6px' }} />
           </a>
         </div>
@@ -56,9 +85,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    textAlign: 'left',
     overflow: 'hidden',
-    backgroundColor: '#050505', // Deep space background
+    backgroundColor: '#050505',
   },
   container: {
     position: 'relative',
@@ -67,8 +95,9 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'flex-start',
     width: '100%',
-    transition: 'transform 0.1s ease-out, opacity 0.1s ease-out',
     pointerEvents: 'auto',
+    willChange: 'transform, opacity',
+    transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
   },
   eyebrow: {
     fontSize: '11px',
@@ -109,30 +138,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px 16px',
     borderRadius: 'var(--radius-pill)',
     textDecoration: 'none',
-    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+    transition: 'background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
     cursor: 'pointer',
   },
 };
-
-// Inject hover styles
-if (typeof document !== 'undefined') {
-  const css = `
-    .btn-minimal:hover {
-      background-color: var(--color-brand-orange-soft) !important;
-      border-color: var(--color-brand-orange) !important;
-      color: #ffffff !important;
-      transform: translateX(4px);
-    }
-    
-    @media (max-width: 768px) {
-      h1[style*="heading"] {
-        font-size: 42px !important;
-        line-height: 1.1 !important;
-        letter-spacing: -0.04em !important;
-      }
-    }
-  `;
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = css;
-  document.head.appendChild(styleSheet);
-}

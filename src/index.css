@@ -1,5 +1,8 @@
 /* Vercel Geist Design System — Cosmic Dark Adaptation */
 
+
+
+
 :root {
   /* Color Palette */
   --color-canvas: #050505;
@@ -14,22 +17,22 @@
   --color-link-soft: #112244;
   --color-error: #ff3333;
   
-  /* Brand Specifics (Nimish's Orange Avatar Accent) */
+  /* Brand Specifics */
   --color-brand-orange: #ff5a1f;
   --color-brand-orange-soft: rgba(255, 90, 31, 0.15);
   --color-brand-orange-deep: #e04810;
 
-  /* Geist Typography System */
+  /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Bimodal Radii */
+  /* Radii */
   --radius-none: 0px;
-  --radius-sm: 6px;       /* App / nav buttons, inputs */
-  --radius-md: 12px;      /* Cards, terminal, code blocks */
-  --radius-lg: 16px;      /* Large panels, video showcase */
-  --radius-pill: 100px;   /* Marketing pills */
-  --radius-full: 9999px;  /* Circle / avatars */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 100px;
+  --radius-full: 9999px;
 
   /* Spacing */
   --spacing-xxs: 4px;
@@ -43,13 +46,13 @@
   --spacing-4xl: 96px;
   --spacing-section: 128px;
 
-  /* Custom Glows & Shadows */
+  /* Shadows */
   --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--color-hairline);
   --shadow-floating: 0px 8px 30px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--color-hairline-bright);
 }
 
 /* Base resets */
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -65,39 +68,25 @@ html, body {
   scroll-behavior: smooth;
 }
 
-/* Cosmic Dot-Grid Texture Backdrop */
+
+
+
+/* Subtle dot-grid texture — SVG data URI is GPU-cached as a raster texture, unlike CSS gradients which repaint on every frame */
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  opacity: 0.025;
+  inset: 0;
+  opacity: 0.02;
   pointer-events: none;
-  z-index: 9998;
-  background-image: radial-gradient(#ffffff 1px, transparent 1px);
-  background-size: 24px 24px;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='0.5' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
 }
 
-/* Analog Film Grain Texture Overlay */
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  opacity: 0.055; /* Fine, high-res analogue film grain */
-  pointer-events: none;
-  z-index: 9999;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.25' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-/* Typography styles matching Geist system */
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
-  letter-spacing: -0.05em; /* Tight Display Tracking */
+  letter-spacing: -0.05em;
   color: var(--color-ink);
 }
 
@@ -107,7 +96,7 @@ p {
   color: var(--color-body);
 }
 
-/* Core grid layout */
+/* Grid layout */
 .container {
   width: 100%;
   max-width: 1200px;
@@ -115,48 +104,6 @@ p {
   padding: 0 var(--spacing-lg);
 }
 
-/* Mesh Gradient for Hero Background */
-.mesh-gradient-container {
-  position: absolute;
-  top: -10%;
-  left: 10%;
-  right: 10%;
-  height: 60%;
-  z-index: 0;
-  filter: blur(100px);
-  opacity: 0.35;
-  pointer-events: none;
-  display: flex;
-  justify-content: center;
-}
-
-.mesh-gradient-circle {
-  width: 600px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    var(--color-brand-orange) 0%,
-    #7928ca 30%,
-    #0070f3 60%,
-    #ff0080 100%
-  );
-  animation: rotateMesh 20s linear infinite;
-}
-
-@keyframes rotateMesh {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.1);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-  }
-}
-
-/* Utilities */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -167,57 +114,156 @@ p {
   margin-bottom: var(--spacing-sm);
 }
 
-/* Glitch Typography hover effect for main title */
-.glitch-text {
-  position: relative;
-  display: inline-block;
-  cursor: default;
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--color-canvas); }
+::-webkit-scrollbar-thumb { background: var(--color-faint); border-radius: var(--radius-sm); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-mute); }
+
+/* =====================
+   Scroll Reveal System
+   =====================
+   Elements start invisible + shifted down.
+   JS adds .is-visible via IntersectionObserver — CSS handles the transition.
+   opacity + transform are compositor-only properties — no will-change needed.
+*/
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glitch-text::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-canvas);
-  color: var(--color-brand-orange);
-  overflow: hidden;
-  clip-path: rect(0 0 0 0); 
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.glitch-text:hover::after {
-  animation: glitch-anim 0.3s infinite linear alternate-reverse;
-  clip-path: polygon(0 20%, 100% 20%, 100% 30%, 0 30%);
+/* Staggered children — each sibling delays by 80ms */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.is-visible > *:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0ms; }
+.reveal-stagger.is-visible > *:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 80ms; }
+.reveal-stagger.is-visible > *:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 160ms; }
+.reveal-stagger.is-visible > *:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 240ms; }
+.reveal-stagger.is-visible > *:nth-child(5) { opacity: 1; transform: translateY(0); transition-delay: 320ms; }
+.reveal-stagger.is-visible > *:nth-child(6) { opacity: 1; transform: translateY(0); transition-delay: 400ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-stagger > * { transition: none; opacity: 1; transform: none; }
 }
 
-@keyframes glitch-anim {
-  0% {
-    clip-path: polygon(0 15%, 100% 15%, 100% 25%, 0 25%);
-    transform: translate(-1px);
+
+/* =====================
+   Component styles
+   ===================== */
+
+/* Hero */
+.btn-minimal:hover {
+  background-color: var(--color-brand-orange-soft) !important;
+  border-color: var(--color-brand-orange) !important;
+  color: #ffffff !important;
+  transform: translateX(4px);
+}
+
+/* Showcase */
+.video-hover-card {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+}
+.video-hover-card:hover {
+  transform: scale(1.025);
+  border-color: rgba(255, 90, 31, 0.45) !important;
+  box-shadow: inset 0 1px 0 rgba(255,120,60,0.1), 0 8px 32px rgba(255,60,20,0.12) !important;
+  z-index: 5;
+}
+.video-category-badge {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.video-hover-card:hover .video-category-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 992px) {
+  .showcase-layout-container {
+    flex-direction: column !important;
+    gap: 24px !important;
+    padding: 0 24px !important;
   }
-  50% {
-    clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%);
-    transform: translate(2px);
+  .showcase-left-col {
+    /* Keep the title in place on mobile — full width, sticky to top */
+    width: 100% !important;
+    top: 0 !important;
+    background: rgba(10,10,10,0.92) !important;
+    padding: 16px 0 !important;
+    z-index: 3;
+    position: sticky;
   }
-  100% {
-    clip-path: polygon(0 40%, 100% 40%, 100% 55%, 0 55%);
-    transform: translate(-1px);
+  .showcase-right-col { width: 100% !important; }
+}
+@media (max-width: 768px) {
+  .justified-video-row {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  .video-hover-card { width: 100% !important; }
+  /* Disable aurora on mobile to save battery */
+  .aurora-blob { display: none; }
+}
+@media (min-width: 1600px) {
+  .showcase-layout-container {
+    padding: 0 8% !important;
+  }
+}
+@media (max-width: 420px) {
+  .showcase-socials {
+    gap: 4px !important;
   }
 }
 
-/* Scrollbar customization */
-::-webkit-scrollbar {
-  width: 8px;
+/* Showcase sticky title — always visible when pinned at top */
+.showcase-left-col {
+  /* Soft background so title stays readable when it overlaps videos on mobile */
+  padding: 12px 0;
 }
-::-webkit-scrollbar-track {
-  background: var(--color-canvas);
+
+/* Hide scrollbar but keep scroll functionality in the video container */
+.showcase-scroll-container::-webkit-scrollbar {
+  display: none;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--color-faint);
-  border-radius: var(--radius-sm);
+.showcase-scroll-container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-mute);
+
+/* Contact Terminal */
+input[style*="terminalInput"]:focus {
+  border-bottom-color: var(--color-brand-orange) !important;
+}
+textarea[style*="terminalTextarea"]:focus {
+  border-color: var(--color-brand-orange) !important;
+  background-color: rgba(255, 90, 31, 0.02) !important;
+}
+button[style*="submitButton"]:hover {
+  background-color: var(--color-brand-orange) !important;
+  color: white !important;
+}
+
+/* Logo */
+.logo-text:hover { color: var(--color-brand-orange) !important; }
+
+/* Footer */
+.footer-social-link:hover { color: var(--color-ink) !important; }
+
+/* Word by word animation */
+@keyframes revealWord {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
 }

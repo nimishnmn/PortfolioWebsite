@@ -58,17 +58,3 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--color-brand-orange)',
   },
 };
-
-// Add styles injection for hover micro-animations
-if (typeof document !== 'undefined') {
-  const css = `
-    .tool-badge-hover:hover {
-      border-color: var(--color-brand-orange) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255, 90, 31, 0.05);
-    }
-  `;
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = css;
-  document.head.appendChild(styleSheet);
-}

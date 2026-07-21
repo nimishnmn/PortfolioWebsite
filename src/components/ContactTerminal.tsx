@@ -347,35 +347,3 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'background-color 0.2s',
   },
 };
-
-if (typeof document !== 'undefined') {
-  const css = `
-    input[style*="terminalInput"]:focus {
-      border-bottom-color: var(--color-brand-orange) !important;
-    }
-    textarea[style*="terminalTextarea"]:focus {
-      border-color: var(--color-brand-orange) !important;
-      background-color: rgba(255, 90, 31, 0.02) !important;
-    }
-    button[style*="submitButton"]:hover {
-      background-color: var(--color-brand-orange) !important;
-      color: white !important;
-    }
-    button[style*="resetButton"]:hover {
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      border-color: var(--color-ink) !important;
-    }
-    @media (max-width: 640px) {
-      .msg-line {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-      }
-      input[style*="terminalInput"] {
-        width: 100% !important;
-      }
-    }
-  `;
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = css;
-  document.head.appendChild(styleSheet);
-}

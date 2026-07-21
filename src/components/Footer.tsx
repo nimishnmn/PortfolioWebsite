@@ -59,21 +59,3 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--color-mute)',
   },
 };
-
-if (typeof document !== 'undefined') {
-  const css = `
-    .footer-social-link:hover {
-      color: var(--color-ink) !important;
-    }
-    @media (max-width: 640px) {
-      div[style*="footerBottom"] {
-        flex-direction: column-reverse !important;
-        align-items: flex-start !important;
-        gap: 16px !important;
-      }
-    }
-  `;
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = css;
-  document.head.appendChild(styleSheet);
-}
