@@ -144,9 +144,13 @@ export default function Showcase() {
     return () => window.removeEventListener('wheel', handleWheel);
   }, []);
 
-  const displayVideos: VideoItem[] = (localVideosData as VideoItem[]).filter(
-    v => !videoErrors[v.id]
-  );
+  const displayVideos: VideoItem[] = (localVideosData as VideoItem[])
+    .filter(v => !videoErrors[v.id])
+    .sort((a, b) => {
+      const titleA = (a.title?.trim() || a.fileName?.split('.').slice(0, -1).join('.') || '').toLowerCase();
+      const titleB = (b.title?.trim() || b.fileName?.split('.').slice(0, -1).join('.') || '').toLowerCase();
+      return titleA.localeCompare(titleB);
+    });
 
   const handleVideoError = (id: string) =>
     setVideoErrors(prev => ({ ...prev, [id]: true }));
