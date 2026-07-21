@@ -186,6 +186,15 @@ p {
   #work {
     height: auto !important;
   }
+  /* Mobile: abandon sticky-slab — let the whole section scroll naturally
+     with the page. This is the standard mobile pattern and avoids the
+     overflow:hidden / sticky conflicts. */
+  .glass-slab {
+    position: relative !important;
+    height: auto !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
   .showcase-layout-container {
     height: auto !important;
     flex-direction: column !important;
@@ -193,16 +202,13 @@ p {
     padding: 0 24px !important;
   }
   .showcase-left-col {
-    /* Keep the title in place on mobile — full width, sticky to top */
     width: 100% !important;
-    top: 0 !important;
-    background: rgba(10,10,10,0.92) !important;
+    background: transparent !important;
     padding: 16px 0 !important;
-    z-index: 3;
-    position: sticky;
+    position: static !important;
   }
-  .showcase-right-col { 
-    width: 100% !important; 
+  .showcase-right-col {
+    width: 100% !important;
     height: auto !important;
   }
   .showcase-scroll-container {
