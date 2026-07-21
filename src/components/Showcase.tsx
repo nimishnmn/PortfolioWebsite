@@ -270,8 +270,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     gap: '24px', // Absolute constant margin horizontally
     alignItems: 'flex-start',
-    contentVisibility: 'auto',
-    containIntrinsicSize: 'auto 340px',
   },
   videoCard: {
     background: 'linear-gradient(135deg, rgba(30,12,5,0.55) 0%, rgba(15,6,3,0.8) 100%)',
