@@ -276,7 +276,7 @@ const styles: Record<string, React.CSSProperties> = {
   videoCard: {
     background: 'linear-gradient(135deg, rgba(30,12,5,0.55) 0%, rgba(15,6,3,0.8) 100%)',
     border: '1px solid rgba(255,90,31,0.12)',
-    borderRadius: 'var(--radius-lg)', // Flawlessly wraps intrinsic video height
+    borderRadius: 'var(--radius-lg)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -293,11 +293,14 @@ const styles: Record<string, React.CSSProperties> = {
   videoWrapper: {
     position: 'relative',
     width: '100%',
+    borderRadius: 'inherit',
+    overflow: 'hidden',
   },
   video: {
     width: '100%',
     height: 'auto',
     display: 'block',
+    borderRadius: 'inherit',
   },
   categoryBadge: {
     position: 'absolute',
