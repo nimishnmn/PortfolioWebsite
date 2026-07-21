@@ -1,3 +1,2 @@
 # Ignore local heavy video files during Vercel CLI upload
-# This allows the site layout, CSS, and React code to deploy instantly.
-public/videos/
+# (Removed public/videos so that they can be uploaded to production)
